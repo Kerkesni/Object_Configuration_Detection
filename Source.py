@@ -1,4 +1,5 @@
 import json
+import os
 from PIL import Image, ImageDraw
 
 # Extracting object names and points from the file
@@ -40,57 +41,62 @@ def getObjectsFromRaw(raw_objects_data):
         objects.append(tmp_obj)
     return objects
 
+def generateKformule(filename):
+    ### Opening and parsing the json file
+    file = open('./Ressources/Annotation/'+filename+'.json')
+    json_data = json.load(file)
 
-### Opening and parsing the json file
-file = open('./Ressources/Annotation/shapes_1.json')
-json_data = json.load(file)
+    raw_objets = extract_data(json_data)#[{name, pts:[{x, y}, ...]}, ...]
+    objects = getObjectsFromRaw(raw_objets) #[{name, x, y}, ...]
+    ###
 
-raw_objets = extract_data(json_data)#[{name, pts:[{x, y}, ...]}, ...]
-objects = getObjectsFromRaw(raw_objets) #[{name, x, y}, ...]
-###
+    ### Getting image Size from the file ###
+    #image_size_x = json_data['annotation']['imagesize']['ncols']
+    #image_size_y = json_data['annotation']['imagesize']['nrows']
+    ###
 
-### Getting image Size from the file ###
-image_size_x = json_data['annotation']['imagesize']['ncols']
-image_size_y = json_data['annotation']['imagesize']['nrows']
-###
+    ### Freeing memory
+    file.close()
+    del json_data
+    ###
 
-### Freeing memory
-file.close()
-del json_data
-###
+    ### Sorting objects according to the x axis
+    objects.sort(key=lambda obj: obj['x'])
+    ###
 
-### Sorting objects according to the x axis
-objects.sort(key=lambda obj: obj['x'])
-###
+    ### Defining the K-formules
+    k_formules = []
+    for index in range(len(objects)-1):
+        k_formule = objects[index]['name']+"("
+        for index2 in range(index+1, len(objects)):
+            k_formule+=objects[index2]['name']+","
+        k_formule = k_formule[:-1]
+        k_formule += ")"
+        k_formules.append(k_formule)
+    ###
+        
+    ### Writing K-formule in a file
+    f= open(filename+".txt","w+")
+    for formule in k_formules:
+        f.write(formule+"\n")
+    f.close()
+    ###
 
-### Defining the K-formules
-k_formules = []
-for index in range(len(objects)-1):
-    k_formule = objects[index]['name']+"("
-    for index2 in range(index+1, len(objects)):
-        k_formule+=objects[index2]['name']+","
-    k_formule = k_formule[:-1]
-    k_formule += ")"
-    k_formules.append(k_formule)
-###
-    
-### Writing K-formule in a file
-f= open("k-formules.txt","w+")
-for formule in k_formules:
-    f.write(formule+"\n")
-f.close()
-###
+    ### Displaying the image with the names of objects in the centroids ###
+    '''try:  
+        im = Image.open('./Ressources/Images/'+filename+'.jpg') 
+    except IOError: 
+        print("error while opening the image")
+        exit
 
-### Displaying the image with the names of objects in the centroids ###
-try:  
-    im = Image.open('./Ressources/Images/shapes_1.jpg') 
-except IOError: 
-    print("error while opening the image")
-    exit
+    draw = ImageDraw.Draw(im)
 
-draw = ImageDraw.Draw(im)
+    for obj in objects:
+        draw.text((obj['x'], obj['y']), obj['name'], fill="white")
+    im.show()'''
+    ###
 
-for obj in objects:
-    draw.text((obj['x'], obj['y']), obj['name'], fill="white")
-im.show()
-###
+files = os.listdir('./Ressources/Annotation/')
+for file in files:
+    base=os.path.basename(file)
+    generateKformule(os.path.splitext(base)[0])
