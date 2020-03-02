@@ -1,0 +1,6 @@
+small shapes
+rapport de simularite (distance euclidienne), entre les histogrammes des kformules (moyenne)
+decomposer l'image en 5, pgm
+diminuer la taille de l'image
+
+max (2100, 1500)

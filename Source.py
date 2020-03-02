@@ -83,7 +83,7 @@ def generateKformule(filename):
     ###
 
     ### Displaying the image with the names of objects in the centroids ###
-    '''try:  
+    try:  
         im = Image.open('./Ressources/Images/'+filename+'.jpg') 
     except IOError: 
         print("error while opening the image")
@@ -93,7 +93,7 @@ def generateKformule(filename):
 
     for obj in objects:
         draw.text((obj['x'], obj['y']), obj['name'], fill="white")
-    im.show()'''
+    im.show()
     ###
 
 files = os.listdir('./Ressources/Annotation/')
