@@ -1,8 +1,8 @@
 from PIL import Image, ImageDraw
 import json
 import numpy as np
-from shapely.geometry import Point
-from shapely.geometry import LineString
+from shapely.geometry import Point, LineString 
+from shapely import affinity
 import math
 
 # Calculates the centroid of an object
@@ -44,6 +44,55 @@ def getObjectsFromRaw(raw_objects_data):
         objects.append(tmp_obj)
     return objects
 
+#Projects a point into a line and returns the point, returns tuple
+def Orthoprojection(point, line):
+    x = np.array(point.coords[0])
+
+    u = np.array(line.coords[0])
+    v = np.array(line.coords[len(line.coords)-1])
+
+    n = v - u
+    n /= np.linalg.norm(n, 2)
+
+    return u + n*np.dot(x - u, n)
+
+#rotates a line by an angle, returns lineString object
+def rotateLine(line, angle):
+    coords = []
+    for coord in affinity.rotate(line, angle).coords[:]:
+        x = coord[0]
+        y = coord[1]
+        if(x > 2100):
+            x = 2100
+        if(x < 0):
+            x = 0
+        if(y > 1500):
+            y = 1500
+        if(y < 0):
+            y = 0
+        coords.append(tuple((x,y)))
+    return LineString(coords)
+
+#writes the kformules in a file
+def writeKformules(objects, filename):
+    ### Defining the K-formules
+    k_formules = []
+    for index in range(len(objects)-1):
+        k_formule = objects[index]['name']+"("
+        for index2 in range(index+1, len(objects)):
+            k_formule+=objects[index2]['name']+","
+        k_formule = k_formule[:-1]
+        k_formule += ")"
+        k_formules.append(k_formule)
+    ###
+        
+    ### Writing K-formule in a file
+    f= open(filename+".txt","w+")
+    for formule in k_formules:
+        f.write(formule+"\n")
+    f.close()
+    ###
+
 file = open('./Ressources/Annotation/im_1.json')
 json_data = json.load(file)
 
@@ -58,38 +107,53 @@ except IOError:
     exit
 
 draw = ImageDraw.Draw(im)
-for obj in objects:
-    #draw.text((obj['x'], obj['y']), obj['name'], fill="white")
 
-    degree = (2100, 0)
-    init = (0, 1500)
+#image Size
+imageSize = im.size
 
-    point = Point(obj['x'], obj['y'])
-    line = LineString([init, degree])
+#0° Axis Coords (0° line across the middle of the screen)
+init = (0, imageSize[1]/2)
+end = (imageSize[0], imageSize[1]/2)
 
-    x = np.array(point.coords[0])
+original_axis = LineString([init, end])
 
-    u = np.array(line.coords[0])
-    v = np.array(line.coords[len(line.coords)-1])
+for angle in [0, 45, 90, 135, 180, 225, 270, 315, 360]:
+    
+    final_objects = []
 
-    n = v - u
-    n /= np.linalg.norm(n, 2)
+    rotatedLine = rotateLine(original_axis, angle)
+    #draw.line(rotatedLine.coords[:], fill=500)
 
-    P = u + n*np.dot(x - u, n)
-    draw.text((P[0], P[1]), obj['name'], fill="black")
-    #draw.line(init + degree, fill=128)
+    #Getting the coordinates
+    for obj in objects:
+        #draw.text((obj['x'], obj['y']), obj['name'], fill="white")
+        point = Point(obj['x'], obj['y'])
+        projection_point = Orthoprojection(point, rotatedLine)
+        draw.line([(obj['x'], obj['y']), (projection_point[0], projection_point[1])], fill=200)
 
-    '''unit_vector_1 = init / np.linalg.norm(init)
-    unit_vector_2 = degree / np.linalg.norm(degree)
-    dot_product = np.dot(unit_vector_1, unit_vector_2)
-    angle = np.arccos(dot_product)
-    print(angle)'''
+        tmp_object = {}
+        tmp_object['name'] = obj['name']
+        tmp_object['x'] = projection_point[0]
+        tmp_object['y'] = projection_point[1]
+        final_objects.append(tmp_object)
+    
+    #Sorting
+    if angle <= 45 and angle >= 0:
+        #sort by x
+        final_objects.sort(key=lambda obj: obj['x'])
+    elif angle > 45 and angle < 135:
+        # sort by y
+        final_objects.sort(key=lambda obj: obj['y'])
+    elif angle >=135 and angle <= 225:
+        #sort by -x
+        final_objects.sort(key=lambda obj: obj['x'], reverse=True)
+    elif angle > 225 and angle < 315:
+        #sort by -y
+        final_objects.sort(key=lambda obj: obj['y'], reverse=True)
+    elif angle >= 315 and angle <= 360:
+        #sort by -x
+        final_objects.sort(key=lambda obj: obj['x'], reverse=True)
 
-    radians = math.radians(45)
-    c, s = np.cos(radians), np.sin(radians)
-    j = np.matrix([[c, s], [-s, c]])
-    m = np.dot(j, [init[0], init[1]])
-    draw.line(init + m, fill=128)
+    writeKformules(final_objects, 'im_1'+'_'+str(angle))
 
 im.show()
-###

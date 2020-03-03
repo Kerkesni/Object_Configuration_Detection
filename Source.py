@@ -1,6 +1,10 @@
-import json
 import os
+import json
+import math
+import numpy as np
 from PIL import Image, ImageDraw
+from shapely.geometry import Point, LineString 
+from shapely import affinity
 
 # Extracting object names and points from the file
 def extract_data(json_data):
@@ -41,29 +45,55 @@ def getObjectsFromRaw(raw_objects_data):
         objects.append(tmp_obj)
     return objects
 
-def generateKformule(filename):
-    ### Opening and parsing the json file
-    file = open('./Ressources/Annotation/'+filename+'.json')
-    json_data = json.load(file)
+#Projects a point into a line and returns the point, returns tuple
+def Orthoprojection(point, line):
+    x = np.array(point.coords[0])
 
-    raw_objets = extract_data(json_data)#[{name, pts:[{x, y}, ...]}, ...]
-    objects = getObjectsFromRaw(raw_objets) #[{name, x, y}, ...]
-    ###
+    u = np.array(line.coords[0])
+    v = np.array(line.coords[len(line.coords)-1])
 
-    ### Getting image Size from the file ###
-    #image_size_x = json_data['annotation']['imagesize']['ncols']
-    #image_size_y = json_data['annotation']['imagesize']['nrows']
-    ###
+    n = v - u
+    n /= np.linalg.norm(n, 2)
 
-    ### Freeing memory
-    file.close()
-    del json_data
-    ###
+    return u + n*np.dot(x - u, n)
 
-    ### Sorting objects according to the x axis
-    objects.sort(key=lambda obj: obj['x'])
-    ###
+#rotates a line by an angle, returns lineString object
+def rotateLine(line, angle):
+    coords = []
+    for coord in affinity.rotate(line, angle).coords[:]:
+        x = coord[0]
+        y = coord[1]
+        if(x > 2100):
+            x = 2100
+        if(x < 0):
+            x = 0
+        if(y > 1500):
+            y = 1500
+        if(y < 0):
+            y = 0
+        coords.append(tuple((x,y)))
+    return LineString(coords)
 
+#sorts the list of objects acording to the axis angle
+def sortObjects(objects, angle):
+    if angle <= 45 and angle >= 0:
+        #sort by x
+        objects.sort(key=lambda obj: obj['x'])
+    elif angle > 45 and angle < 135:
+        # sort by y
+        objects.sort(key=lambda obj: obj['y'])
+    elif angle >=135 and angle <= 225:
+        #sort by -x
+        objects.sort(key=lambda obj: obj['x'], reverse=True)
+    elif angle > 225 and angle < 315:
+        #sort by -y
+        objects.sort(key=lambda obj: obj['y'], reverse=True)
+    elif angle >= 315 and angle <= 360:
+        #sort by -x
+        objects.sort(key=lambda obj: obj['x'], reverse=True)
+
+#writes the kformules in a file
+def writeKformules(objects, filename, angle):
     ### Defining the K-formules
     k_formules = []
     for index in range(len(objects)-1):
@@ -76,27 +106,71 @@ def generateKformule(filename):
     ###
         
     ### Writing K-formule in a file
-    f= open(filename+".txt","w+")
+    f= open(filename+"_"+str(angle)+".txt","w+")
     for formule in k_formules:
         f.write(formule+"\n")
     f.close()
     ###
 
-    ### Displaying the image with the names of objects in the centroids ###
+def generateKformule(filename):
+    ### Opening and parsing the json file
+    file = open('./Ressources/Annotation/'+filename+'.json')
+    json_data = json.load(file)
+
+    raw_objets = extract_data(json_data)#[{name, pts:[{x, y}, ...]}, ...]
+    objects = getObjectsFromRaw(raw_objets) #[{name, x, y}, ...]
+    ###
+
+    ### Freeing memory
+    file.close()
+    del json_data
+    ###
+
     try:  
         im = Image.open('./Ressources/Images/'+filename+'.jpg') 
     except IOError: 
         print("error while opening the image")
         exit
 
-    draw = ImageDraw.Draw(im)
+    #draw = ImageDraw.Draw(im)
 
-    for obj in objects:
-        draw.text((obj['x'], obj['y']), obj['name'], fill="white")
-    im.show()
-    ###
+    #image Size
+    imageSize = im.size
+
+    #0° Axis Coords (0° line across the middle of the screen)
+    init = (0, imageSize[1]/2)
+    end = (imageSize[0], imageSize[1]/2)
+    original_axis = LineString([init, end])
+
+    #for each degree project -> sort -> write to file
+    #Axis Rotation Degrees
+    degrees = [0, 45, 90, 135, 180, 225, 270, 315, 360]
+
+    for angle in degrees:
+        listOfObjects = []
+        rotatedAxis = rotateLine(original_axis, angle)
+
+        #Getting the coordinates
+        for obj in objects:
+            #draw.text((obj['x'], obj['y']), obj['name'], fill="white")
+            point = Point(obj['x'], obj['y'])
+            projection_point = Orthoprojection(point, rotatedAxis)
+            #draw.line([(obj['x'], obj['y']), (projection_point[0], projection_point[1])], fill=200)
+
+            tmp_object = {}
+            tmp_object['name'] = obj['name']
+            tmp_object['x'] = projection_point[0]
+            tmp_object['y'] = projection_point[1]
+            listOfObjects.append(tmp_object)
+
+        #Sorting The objects
+        sortObjects(listOfObjects, angle)
+
+        #writing the k-formules into a file
+        writeKformules(listOfObjects, filename, angle)
 
 files = os.listdir('./Ressources/Annotation/')
+
 for file in files:
     base=os.path.basename(file)
     generateKformule(os.path.splitext(base)[0])
