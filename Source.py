@@ -12,25 +12,15 @@ def extract_data(json_data):
 
     for obj in json_data['annotation']['object']:
         tmp = {}
+        tmp['pts'] = []
         tmp['name'] = obj['name']
         tmp_points = obj['polygon']['pt']
         for pt in tmp_points:
             del pt['time']
-        tmp['pts'] = tmp_points
+            tmp['pts'].append((int(pt['x']), int(pt['y'])))
         objects.append(tmp)
 
     return objects
-
-# Calculates the centroid of an object
-def calculate_centroid(coordinates):
-    n = len(coordinates)
-    x = y = 0
-    for coord in coordinates:
-        x += int(coord['x'])
-        y += int(coord['y'])
-    x /= n
-    y /= n
-    return (x, y)
 
 #Returns an array of objects containing the name and centroid of objects
 def getObjectsFromRaw(raw_objects_data):
@@ -44,6 +34,17 @@ def getObjectsFromRaw(raw_objects_data):
         }
         objects.append(tmp_obj)
     return objects
+
+# Calculates the centroid of an object
+def calculate_centroid(coordinates):
+    n = len(coordinates)
+    x = y = 0
+    for coord in coordinates:
+        x += int(coord[0])
+        y += int(coord[1])
+    x /= n
+    y /= n
+    return (x, y)
 
 #Projects a point into a line and returns the point, returns tuple
 def Orthoprojection(point, line):
@@ -94,6 +95,7 @@ def sortObjects(objects, angle):
 
 #writes the kformules in a file
 def writeKformules(objects, filename, angle):
+
     ### Defining the K-formules
     k_formules = []
     for index in range(len(objects)-1):
@@ -106,20 +108,37 @@ def writeKformules(objects, filename, angle):
     ###
         
     ### Writing K-formule in a file
-    f= open(filename+"_"+str(angle)+".txt","w+")
+    f= open('./'+filename+'/kformules/'+filename+"_"+str(angle)+".txt","w+")
     for formule in k_formules:
         f.write(formule+"\n")
     f.close()
     ###
+
+#creates an image for each object in the image
+def seperateObjects(image, filename, objects):
+    imArray = np.asarray(image)
+    blankIm = Image.new('L', (imArray.shape[1], imArray.shape[0]), 255)
+    index = 0
+    for obj in objects:
+        index += 1
+        # create mask
+        maskIm = Image.new('L', (imArray.shape[1], imArray.shape[0]), 255)
+        ImageDraw.Draw(maskIm).polygon(obj['pts'], outline=1, fill=1)
+        Image.composite(blankIm, image, maskIm).save('./'+filename+'/objects/'+str(index)+'.pgm')
 
 def generateKformule(filename):
     ### Opening and parsing the json file
     file = open('./Ressources/Annotation/'+filename+'.json')
     json_data = json.load(file)
 
-    raw_objets = extract_data(json_data)#[{name, pts:[{x, y}, ...]}, ...]
+    raw_objets = extract_data(json_data)#[{name, pts:[(x, y), ...]}, ...]
     objects = getObjectsFromRaw(raw_objets) #[{name, x, y}, ...]
     ###
+
+    ## Creating k-formules folder
+    os.mkdir(filename)
+    os.mkdir('./'+filename+'/kformules')
+    os.mkdir('./'+filename+'/objects')
 
     ### Freeing memory
     file.close()
@@ -132,7 +151,8 @@ def generateKformule(filename):
         print("error while opening the image")
         exit
 
-    #draw = ImageDraw.Draw(im)
+    #Separating objects
+    seperateObjects(im, filename, raw_objets)
 
     #image Size
     imageSize = im.size
@@ -142,20 +162,17 @@ def generateKformule(filename):
     end = (imageSize[0], imageSize[1]/2)
     original_axis = LineString([init, end])
 
-    #for each degree project -> sort -> write to file
     #Axis Rotation Degrees
-    degrees = [0, 45, 90, 135, 180, 225, 270, 315, 360]
+    #degrees = [0, 45, 90, 135, 180, 225, 270, 315, 360]
 
-    for angle in degrees:
+    for angle in range(181):
         listOfObjects = []
         rotatedAxis = rotateLine(original_axis, angle)
 
         #Getting the coordinates
         for obj in objects:
-            #draw.text((obj['x'], obj['y']), obj['name'], fill="white")
             point = Point(obj['x'], obj['y'])
             projection_point = Orthoprojection(point, rotatedAxis)
-            #draw.line([(obj['x'], obj['y']), (projection_point[0], projection_point[1])], fill=200)
 
             tmp_object = {}
             tmp_object['name'] = obj['name']
@@ -168,6 +185,7 @@ def generateKformule(filename):
 
         #writing the k-formules into a file
         writeKformules(listOfObjects, filename, angle)
+
 
 files = os.listdir('./Ressources/Annotation/')
 
