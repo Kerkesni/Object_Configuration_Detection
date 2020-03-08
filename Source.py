@@ -1,3 +1,5 @@
+import matplotlib
+matplotlib.use('agg')
 import os
 import json
 import math
@@ -5,6 +7,9 @@ import numpy as np
 from PIL import Image, ImageDraw
 from shapely.geometry import Point, LineString 
 from shapely import affinity
+from fhistogram import fhistogram
+import matplotlib.pyplot as plt
+
 
 # Extracting object names and points from the file
 def extract_data(json_data):
@@ -117,7 +122,7 @@ def writeKformules(objects, filename, angle):
 #creates an image for each object in the image
 def seperateObjects(image, filename, objects):
     imArray = np.asarray(image)
-    blankIm = Image.new('L', (imArray.shape[1], imArray.shape[0]), 255)
+    blankIm = Image.new('L', (imArray.shape[1], imArray.shape[0]), 0)
     index = 0
     for obj in objects:
         index += 1
@@ -126,46 +131,21 @@ def seperateObjects(image, filename, objects):
         ImageDraw.Draw(maskIm).polygon(obj['pts'], outline=1, fill=1)
         Image.composite(blankIm, image, maskIm).save('./'+filename+'/objects/'+str(index)+'.pgm')
 
-def generateKformule(filename):
-    ### Opening and parsing the json file
-    file = open('./Ressources/Annotation/'+filename+'.json')
-    json_data = json.load(file)
-
-    raw_objets = extract_data(json_data)#[{name, pts:[(x, y), ...]}, ...]
-    objects = getObjectsFromRaw(raw_objets) #[{name, x, y}, ...]
-    ###
-
-    ## Creating k-formules folder
-    os.mkdir(filename)
-    os.mkdir('./'+filename+'/kformules')
-    os.mkdir('./'+filename+'/objects')
-
-    ### Freeing memory
-    file.close()
-    del json_data
-    ###
-
-    try:  
-        im = Image.open('./Ressources/Images/'+filename+'.jpg') 
-    except IOError: 
-        print("error while opening the image")
-        exit
-
-    #Separating objects
-    seperateObjects(im, filename, raw_objets)
+#Creates a file for each k-formules
+def generateKformule(filename, image, objects):
 
     #image Size
-    imageSize = im.size
+    imageSize = image.size
 
-    #0° Axis Coords (0° line across the middle of the screen)
+    #0 degree Axis Coords (0 degree line across the middle of the screen)
     init = (0, imageSize[1]/2)
     end = (imageSize[0], imageSize[1]/2)
     original_axis = LineString([init, end])
 
     #Axis Rotation Degrees
-    #degrees = [0, 45, 90, 135, 180, 225, 270, 315, 360]
+    degrees = [0, 45, 90, 135, 180, 225, 270, 315, 360]
 
-    for angle in range(181):
+    for angle in degrees:
         listOfObjects = []
         rotatedAxis = rotateLine(original_axis, angle)
 
@@ -186,9 +166,64 @@ def generateKformule(filename):
         #writing the k-formules into a file
         writeKformules(listOfObjects, filename, angle)
 
+#Calculates and stores histogram of forces between each two objects in the image and stores it in a csv file + png representation
+def generateHistograms(filename):
+    dir = './'+filename+'/objects/'
+    objectFileNames = os.listdir(dir)
+    #Storing object images as arrays
+    objectsArrayRepresentation = []
+    for fname in objectFileNames:
+        obj = Image.open(dir+fname).convert('L')
+        obj_array = np.asarray(obj)
+        objectsArrayRepresentation.append(obj_array)
+
+    #Calculating histograms between each two objects
+    for index in range(len(objectsArrayRepresentation)):
+        for secIndex in range(index+1, len(objectsArrayRepresentation)):
+            histo = fhistogram(objectsArrayRepresentation[index], objectsArrayRepresentation[secIndex])
+            plt.plot(histo)
+            np.savetxt('./'+filename+'/histograms/'+str(index+1)+'_'+str(secIndex+1)+'.csv', histo, delimiter=",")
+            plt.savefig('./'+filename+'/histograms/'+str(index+1)+'_'+str(secIndex+1)+'.png')
+            plt.clf()
+
+#main function
+def processFile(filename):
+    ### Opening and parsing the json file
+    file = open('./Ressources/Annotation/'+filename+'.json')
+    json_data = json.load(file)
+
+    raw_objets = extract_data(json_data)#[{name, pts:[(x, y), ...]}, ...]
+    objects = getObjectsFromRaw(raw_objets) #[{name, x, y}, ...]
+    ###
+
+    ## Creating k-formules folder
+    os.mkdir(filename)
+    os.mkdir('./'+filename+'/kformules')
+    os.mkdir('./'+filename+'/objects')
+    os.mkdir('./'+filename+'/histograms')
+
+    ### Freeing memory
+    file.close()
+    del json_data
+    ###
+
+    try:  
+        im = Image.open('./Ressources/Images/'+filename+'.jpg') 
+    except IOError: 
+        print("error while opening the image")
+        exit
+
+    #Separating objects
+    seperateObjects(im, filename, raw_objets)
+
+    #Generating histograms of forces between the objects
+    generateHistograms(filename)
+
+    #Generating k-formules
+    generateKformule(filename, im, objects)
 
 files = os.listdir('./Ressources/Annotation/')
 
 for file in files:
     base=os.path.basename(file)
-    generateKformule(os.path.splitext(base)[0])
+    processFile(os.path.splitext(base)[0])
