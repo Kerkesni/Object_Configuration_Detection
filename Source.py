@@ -196,6 +196,8 @@ def generateHistograms(filename):
     #list of histograms
     histograms=[]
 
+    plt.clf()   #Emptying the plot
+
     #Calculating histograms between each two objects
     for index in range(len(objectsArrayRepresentation)):
         for secIndex in range(index+1, len(objectsArrayRepresentation)):
