@@ -119,6 +119,22 @@ def writeKformules(objects, filename, angle):
     f.close()
     ###
 
+#Sums all the histograms in the list and stores it
+def sumHistograms(filename, histograms):
+    #The final Histograms
+    histogram = [0]*len(histograms[0])
+
+    for histo in histograms:
+        for index in range(len(histogram)):
+            histogram[index]+=histo[index]/len(histograms)
+
+    #Storing the histogram
+    dir = './'+filename+'/histograms/'
+    plt.clf()
+    plt.plot(histogram)
+    plt.savefig(dir+"sum.png")
+    np.savetxt(dir+'sum.csv', histogram, delimiter=",")
+
 #creates an image for each object in the image
 def seperateObjects(image, filename, objects):
     imArray = np.asarray(image)
@@ -177,14 +193,20 @@ def generateHistograms(filename):
         obj_array = np.asarray(obj)
         objectsArrayRepresentation.append(obj_array)
 
+    #list of histograms
+    histograms=[]
+
     #Calculating histograms between each two objects
     for index in range(len(objectsArrayRepresentation)):
         for secIndex in range(index+1, len(objectsArrayRepresentation)):
             histo = fhistogram(objectsArrayRepresentation[index], objectsArrayRepresentation[secIndex])
             plt.plot(histo)
+            histograms.append(histo)
             np.savetxt('./'+filename+'/histograms/'+str(index+1)+'_'+str(secIndex+1)+'.csv', histo, delimiter=",")
             plt.savefig('./'+filename+'/histograms/'+str(index+1)+'_'+str(secIndex+1)+'.png')
             plt.clf()
+    
+    sumHistograms(filename, histograms)
 
 #main function
 def processFile(filename):

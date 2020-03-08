@@ -5,25 +5,21 @@ import matplotlib.pyplot as plt
 import os
 from PIL import Image
 import numpy as np
+import pandas as pd
+from pandas import DataFrame
 
+dir = "./im_1/histograms"
+data = []
 
-#Calculating histogram of forces between two images
-a = Image.open('./im_1/objects/1.pgm').convert('L')
-b = Image.open('./im_1/objects/2.pgm').convert('L')
-c = Image.open('./im_1/objects/3.pgm').convert('L')
+for file in os.listdir(dir):
+    if file.endswith(".csv"):
+        data.append(np.genfromtxt(dir+'/'+file, delimiter=','))
 
-a_array = np.asarray(a)
-'''
-b_array = np.asarray(b)
-c_array = np.asarray(b)
+bigHisto = [0]*len(data[0])
 
+for histogram in data:
+    for index in range(len(histogram)):
+        bigHisto[index]+=histogram[index]/len(data)
 
-histo = fhistogram(a_array, b_array)
-plt.plot(histo)
-plt.savefig('h1.png')
-histo2 = fhistogram(b_array, c_array)
-plt.plot(histo2)
-plt.savefig('h2.png')
-'''
-#np.savetxt("books_read.csv", histo, delimiter=",")
-
+plt.plot(bigHisto)
+plt.savefig("a.png")
