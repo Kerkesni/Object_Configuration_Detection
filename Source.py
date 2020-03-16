@@ -214,7 +214,7 @@ def processFile(filename):
     os.mkdir(filename)
     os.mkdir('./'+filename+'/kformules')
     os.mkdir('./'+filename+'/objects')
-    os.mkdir('./'+filename+'/histograms')
+    #os.mkdir('./'+filename+'/histograms')
 
     ### Freeing memory
     file.close()
