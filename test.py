@@ -32,12 +32,18 @@ def getHistograms(raw_line):
     histograms.pop()    #removing empty item
     return histograms   #np.array of floats
 
-with open('./im_1/kformules/im_1_0.txt', 'r') as fp:
-    line = fp.readline()
-
-    histograms = []     #array of all histograms in the k-formules by original order
-
-    while line:
-        histograms.append(getHistograms(line))
+#function that reads the kforms in a file
+#must be called for each file
+#path = k-formlule file path
+#returns an array of arrays, each array contains the histograms in a k-formule ordered according to the original file
+def readKforms(path):
+    with open(path, 'r') as fp:
         line = fp.readline()
 
+        histograms = []     #array of all histograms in the k-formules by original order
+
+        while line: #Reads the file line by line
+            histograms.append(getHistograms(line))
+            line = fp.readline()
+        
+        return histograms   #np.array
