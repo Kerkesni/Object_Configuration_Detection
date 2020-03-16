@@ -9,6 +9,7 @@ from shapely.geometry import Point, LineString
 from shapely import affinity
 from fhistogram import fhistogram
 import matplotlib.pyplot as plt
+import re
 
 
 # Extracting object names and points from the file
@@ -99,14 +100,18 @@ def sortObjects(objects, angle):
         objects.sort(key=lambda obj: obj['x'], reverse=True)
 
 #writes the kformules in a file
-def writeKformules(objects, filename, angle):
+def writeKformules(objects, filename, angle, histograms):
 
     ### Defining the K-formules
     k_formules = []
     for index in range(len(objects)-1):
         k_formule = objects[index]['name']+"("
         for index2 in range(index+1, len(objects)):
-            k_formule+=objects[index2]['name']+","
+            #k_formule+=objects[index2]['name']+","
+            if(index < index2):
+                k_formule+=re.sub(r'\s+', '',np.array2string(histograms[str(index+1)+'_'+str(index2+1)], threshold=np.inf, max_line_width=np.inf, separator=',').replace('\n', '')+",")
+            else:
+                k_formule+=re.sub(r'\s+', '',np.array2string(histograms[str(index2+1)+'_'+str(index1+1)], threshold=np.inf, max_line_width=np.inf, separator=',').replace('\n', '')+",")
         k_formule = k_formule[:-1]
         k_formule += ")"
         k_formules.append(k_formule)
@@ -118,22 +123,6 @@ def writeKformules(objects, filename, angle):
         f.write(formule+"\n")
     f.close()
     ###
-
-#Sums all the histograms in the list and stores it
-def sumHistograms(filename, histograms):
-    #The final Histograms
-    histogram = [0]*len(histograms[0])
-
-    for histo in histograms:
-        for index in range(len(histogram)):
-            histogram[index]+=histo[index]/len(histograms)
-
-    #Storing the histogram
-    dir = './'+filename+'/histograms/'
-    plt.clf()
-    plt.plot(histogram)
-    plt.savefig(dir+"sum.png")
-    np.savetxt(dir+'sum.csv', histogram, delimiter=",")
 
 #creates an image for each object in the image
 def seperateObjects(image, filename, objects):
@@ -148,7 +137,7 @@ def seperateObjects(image, filename, objects):
         Image.composite(blankIm, image, maskIm).save('./'+filename+'/objects/'+str(index)+'.pgm')
 
 #Creates a file for each k-formules
-def generateKformule(filename, image, objects):
+def generateKformule(filename, image, objects, histograms):
 
     #image Size
     imageSize = image.size
@@ -180,7 +169,7 @@ def generateKformule(filename, image, objects):
         sortObjects(listOfObjects, angle)
 
         #writing the k-formules into a file
-        writeKformules(listOfObjects, filename, angle)
+        writeKformules(listOfObjects, filename, angle, histograms)
 
 #Calculates and stores histogram of forces between each two objects in the image and stores it in a csv file + png representation
 def generateHistograms(filename):
@@ -194,21 +183,22 @@ def generateHistograms(filename):
         objectsArrayRepresentation.append(obj_array)
 
     #list of histograms
-    histograms=[]
+    histograms={}
 
-    plt.clf()   #Emptying the plot
+    #plt.clf()   #Emptying the plot
 
     #Calculating histograms between each two objects
     for index in range(len(objectsArrayRepresentation)):
         for secIndex in range(index+1, len(objectsArrayRepresentation)):
             histo = fhistogram(objectsArrayRepresentation[index], objectsArrayRepresentation[secIndex])
-            plt.plot(histo)
-            histograms.append(histo)
-            np.savetxt('./'+filename+'/histograms/'+str(index+1)+'_'+str(secIndex+1)+'.csv', histo, delimiter=",")
-            plt.savefig('./'+filename+'/histograms/'+str(index+1)+'_'+str(secIndex+1)+'.png')
-            plt.clf()
+            #plt.plot(histo)
+            #histograms.append(histo)
+            histograms[str(index+1)+'_'+str(secIndex+1)] = histo
+            #np.savetxt('./'+filename+'/histograms/'+str(index+1)+'_'+str(secIndex+1)+'.csv', histo, delimiter=",")
+            #plt.savefig('./'+filename+'/histograms/'+str(index+1)+'_'+str(secIndex+1)+'.png')
+            #plt.clf()
     
-    sumHistograms(filename, histograms)
+    return histograms
 
 #main function
 def processFile(filename):
@@ -232,19 +222,19 @@ def processFile(filename):
     ###
 
     try:  
-        im = Image.open('./Ressources/Images/'+filename+'.jpg') 
+        im = Image.open('./Ressources/Images/'+filename+'.jpg').convert('1')
     except IOError: 
         print("error while opening the image")
         exit
-
+    
     #Separating objects
     seperateObjects(im, filename, raw_objets)
 
     #Generating histograms of forces between the objects
-    generateHistograms(filename)
+    histograms = generateHistograms(filename)
 
     #Generating k-formules
-    generateKformule(filename, im, objects)
+    generateKformule(filename, im, objects, histograms)
 
 files = os.listdir('./Ressources/Annotation/')
 
