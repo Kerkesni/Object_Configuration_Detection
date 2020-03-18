@@ -108,10 +108,10 @@ def writeKformules(objects, filename, angle, histograms):
         k_formule = objects[index]['name']+"("
         for index2 in range(index+1, len(objects)):
             #k_formule+=objects[index2]['name']+","
-            if(index < index2):
-                k_formule+=re.sub(r'\s+', '',np.array2string(histograms[str(index+1)+'_'+str(index2+1)], threshold=np.inf, max_line_width=np.inf, separator=',').replace('\n', '')+",")
+            if(int(objects[index]['name']) < int(objects[index2]['name'])):
+                k_formule+=re.sub(r'\s+', '',np.array2string(histograms[objects[index]['name']+'_'+objects[index2]['name']], threshold=np.inf, max_line_width=np.inf, separator=',').replace('\n', '')+",")
             else:
-                k_formule+=re.sub(r'\s+', '',np.array2string(histograms[str(index2+1)+'_'+str(index1+1)], threshold=np.inf, max_line_width=np.inf, separator=',').replace('\n', '')+",")
+                k_formule+=re.sub(r'\s+', '',np.array2string(histograms[objects[index2]['name']+'_'+objects[index]['name']], threshold=np.inf, max_line_width=np.inf, separator=',').replace('\n', '')+",")
         k_formule = k_formule[:-1]
         k_formule += ")"
         k_formules.append(k_formule)
