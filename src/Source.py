@@ -6,6 +6,7 @@ from PIL import Image
 from FilesParser import extract_data, getObjectsFromRaw
 from ForceHistograms import generateHistograms
 from Kformules import generateKformule
+from EuclideanDistance import getEuclideanDistance
 
 #main function
 def processFile(filename):
@@ -40,8 +41,26 @@ def processFile(filename):
     #Generating k-formules
     generateKformule(filename, im, objects, histograms)
 
+    dist = getEuclideanDistance(degrees, filename.split('_')[1])
+    distances.append(dist)
+    distancesFile.write(filename+' : {:.2f}'.format(dist)+'\n')
+
+
+degrees = [0, 45, 90, 135, 180, 225, 270, 315, 360]
+distancesFile = open('../EuclideanDistances', 'a+')
+distances = []
+
 files = os.listdir('../Ressources/Annotation/')
 
 for file in files:
     base=os.path.basename(file)
-    processFile(os.path.splitext(base)[0])
+    filename = os.path.splitext(base)[0]
+    processFile(filename)
+
+distancesFile.write('************************************** \n')
+distancesFile.write('Difference: \n')
+
+for index in range(len(distances)-1):
+    for index2 in range(index+1, len(distances)):
+        distancesFile.write('im_'+str(index+1)+' and '+'im_'+str(index2+1)+' : ')
+        distancesFile.write("{:.2f}".format(abs(distances[index]-distances[index2]))+'\n')
