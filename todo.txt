@@ -1,1 +1,2 @@
-rapport de simularite (distance euclidienne), entre les histogrammes des kformules (moyenne)
+Refactor: 
+    - Make otput directory a parameter
