@@ -38,8 +38,9 @@ def readKforms(path):
         
         return histograms   #np.array
 
+
 #Function that returns the euclidean distance between two k-formlues files of the same image (between different angles)
-def calculateEuclideanDistanceForAngle(ob, firstAngle, secondAngle):
+def calculateEuclideanDistance_AllAngles_AllTerms(ob, firstAngle, secondAngle):
 
     Histo_obj1 = readKforms('../im_'+str(ob)+'/kformules/im_'+str(ob)+'_'+str(firstAngle)+'.txt')
     Histo_obj2 = readKforms('../im_'+str(ob)+'/kformules/im_'+str(ob)+'_'+str(secondAngle)+'.txt')
@@ -58,6 +59,26 @@ def calculateEuclideanDistanceForAngle(ob, firstAngle, secondAngle):
 
     return euclidean_distances
 
+#Function that returns the euclidean distance between two k-formlues files of the same image (between different angles)
+def calculateEuclideanDistance_AllAngles_SameTerm(ob, firstAngle, secondAngle):
+
+    Histo_obj1 = readKforms('../im_'+str(ob)+'/kformules/im_'+str(ob)+'_'+str(firstAngle)+'.txt')
+    Histo_obj2 = readKforms('../im_'+str(ob)+'/kformules/im_'+str(ob)+'_'+str(secondAngle)+'.txt')
+    euclidean_distances = 0
+    distances = 0
+    for kform in range(len(Histo_obj1)):
+        kform_distances = 0
+        for histo in range(len(Histo_obj1[kform])-1):
+            kform_distances += euclidean(Histo_obj1[kform][histo], Histo_obj2[kform][histo])
+            distances += 1
+        kform_distances /= distances
+        euclidean_distances += kform_distances
+
+    euclidean_distances /= len(Histo_obj1)
+
+    return euclidean_distances
+
+
 #Calculates the average Euclidean distance between all the histograms of an image
 def getEuclideanDistance(degrees, ob):
 
@@ -66,15 +87,18 @@ def getEuclideanDistance(degrees, ob):
 
     for firstAngle in range(len(degrees)-1):
         for secondAngle in range(firstAngle+1, len(degrees)) :
-            distance += calculateEuclideanDistanceForAngle(ob, degrees[firstAngle], degrees[secondAngle])
+            #distance += calculateEuclideanDistance_AllAngles_AllTerms(ob, degrees[firstAngle], degrees[secondAngle]) #0.509
+            #distance += calculateEuclideanDistance_AllAngles_SameTerm(ob, degrees[firstAngle], degrees[secondAngle])  #28.626
             nbDistances += 1
             
     distance /= nbDistances
     return distance
 
-ob1 = '4'
-ob2 = '5'
+ob1 = '1'
+ob2 = '6'
 degrees = [0, 45, 90, 135, 180, 225, 270, 315, 360]
+
 euc1 = getEuclideanDistance(degrees, ob1)
 euc2 = getEuclideanDistance(degrees, ob2)
+
 print("%.3f" % abs(euc1-euc2))

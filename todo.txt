@@ -1,2 +1,2 @@
 Refactor: 
-    - Make otput directory a parameter
+    - Make Input/otput directory a parameter
