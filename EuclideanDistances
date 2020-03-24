@@ -1,0 +1,31 @@
+im_11 and im_12 : Euclidean distance: 209.170	 Rapport de Similitude: 0.961
+im_11 and im_13 : Euclidean distance: 3135.473	 Rapport de Similitude: 0.804
+im_11 and im_14 : Euclidean distance: 8919.220	 Rapport de Similitude: 0.526
+im_11 and im_15 : Euclidean distance: 21883.497	 Rapport de Similitude: 0.160
+im_11 and im_16 : Euclidean distance: 347.545	 Rapport de Similitude: 0.946
+im_12 and im_13 : Euclidean distance: 3310.757	 Rapport de Similitude: 0.777
+im_12 and im_14 : Euclidean distance: 9032.725	 Rapport de Similitude: 0.514
+im_12 and im_15 : Euclidean distance: 21944.383	 Rapport de Similitude: 0.159
+im_12 and im_16 : Euclidean distance: 470.055	 Rapport de Similitude: 0.920
+im_13 and im_14 : Euclidean distance: 8301.371	 Rapport de Similitude: 0.542
+im_13 and im_15 : Euclidean distance: 22970.938	 Rapport de Similitude: 0.146
+im_13 and im_16 : Euclidean distance: 3353.175	 Rapport de Similitude: 0.801
+im_14 and im_15 : Euclidean distance: 21917.800	 Rapport de Similitude: 0.162
+im_14 and im_16 : Euclidean distance: 9157.749	 Rapport de Similitude: 0.523
+im_15 and im_16 : Euclidean distance: 22000.083	 Rapport de Similitude: 0.162
+
+*****************************************************************************
+
+im_1 and im_2 : Euclidean distance: 9744.847	 Rapport de Similitude: 0.110
+im_1 and im_3 : Euclidean distance: 9739.720	 Rapport de Similitude: 0.111
+im_1 and im_4 : Euclidean distance: 9089.078	 Rapport de Similitude: 0.118
+im_1 and im_5 : Euclidean distance: 4996.730	 Rapport de Similitude: 0.441
+im_2 and im_3 : Euclidean distance: 354.250	     Rapport de Similitude: 0.879
+im_2 and im_4 : Euclidean distance: 7880.026	 Rapport de Similitude: 0.156
+im_2 and im_5 : Euclidean distance: 9708.934	 Rapport de Similitude: 0.070
+im_3 and im_4 : Euclidean distance: 7763.857	 Rapport de Similitude: 0.159
+im_3 and im_5 : Euclidean distance: 9696.206	 Rapport de Similitude: 0.071
+im_4 and im_5 : Euclidean distance: 9513.794	 Rapport de Similitude: 0.105
+
+*****************************************************************************
+

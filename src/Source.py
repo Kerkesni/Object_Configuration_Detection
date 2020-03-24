@@ -6,7 +6,7 @@ from PIL import Image
 from FilesParser import extract_data, getObjectsFromRaw
 from ForceHistograms import generateHistograms
 from Kformules import generateKformule
-from EuclideanDistance import getEuclideanDistance
+from EuclideanDistance import getEuclideanDistance, getRapportSimilitude
 
 #main function
 def processFile(filename):
@@ -44,7 +44,6 @@ def processFile(filename):
 
 degrees = [0, 45, 90, 135, 180, 225, 270, 315, 360]
 distancesFile = open('../EuclideanDistances', 'a+')
-distancesFile.write('Difference: \n')
 
 files = os.listdir('../Ressources/Annotation/')
 
@@ -61,4 +60,7 @@ for fileIndex in range(len(files)):
         filename2 = os.path.splitext(base)[0]
 
         distancesFile.write(filename+' and '+filename2+' : ')
-        distancesFile.write("{0:.3f}".format(getEuclideanDistance(degrees, filename, filename2))+'\n')
+        distancesFile.write('Euclidean distance: ')
+        distancesFile.write("{0:.3f}".format(getEuclideanDistance(degrees, filename, filename2)))
+        distancesFile.write("\t Rapport de Similitude: ")
+        distancesFile.write("{0:.3f}".format(getRapportSimilitude(degrees, filename, filename2))+'\n')

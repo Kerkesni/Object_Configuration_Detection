@@ -86,7 +86,7 @@ def rapportSimilitude(ob1, ob2, fAngle, sAngle):
 
 degrees = [0, 45, 90, 135, 180, 225, 270, 315, 360]
 ob1 = 'im_11'
-ob2 = 'im_13'
+ob2 = 'im_15'
 
 ratios = []
 
