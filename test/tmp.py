@@ -61,3 +61,37 @@ def getEuclideanDistance(degrees, ob1, ob2):
     for angle in range(len(degrees)):
         distances.append(calculateEuclideanDistanceForAngle(ob1, ob2, degrees[angle]))
     return np.min(distances)
+
+
+def rapportSimilitude(ob1, ob2, fAngle, sAngle):
+    Histo_obj1 = readKforms('../'+str(ob1)+'/kformules/'+str(ob1)+'_'+str(fAngle)+'.txt')
+    Histo_obj2 = readKforms('../'+str(ob2)+'/kformules/'+str(ob2)+'_'+str(sAngle)+'.txt')
+    ratio = 0
+    counter = 0
+    for kform in range(len(Histo_obj1)):
+        for histo in range(len(Histo_obj1[kform])):
+            for term in range(len(Histo_obj1[kform][histo])):
+
+                if(Histo_obj1[kform][histo][term] < Histo_obj2[kform][histo][term]):
+                    rt = Histo_obj1[kform][histo][term] / Histo_obj2[kform][histo][term]
+                else:
+                    rt = Histo_obj2[kform][histo][term] / Histo_obj1[kform][histo][term]
+
+                if(not np.isnan(rt) and not np.isinf(rt)):
+                    ratio += rt
+                    counter += 1
+
+    return ratio / counter
+
+
+degrees = [0, 45, 90, 135, 180, 225, 270, 315, 360]
+ob1 = 'im_11'
+ob2 = 'im_13'
+
+ratios = []
+
+for fAngle in range (len(degrees)):
+    for sAngle in range(len(degrees)):
+        ratios.append(rapportSimilitude(ob1, ob2, degrees[fAngle], degrees[sAngle]))
+
+print(np.max(ratios))

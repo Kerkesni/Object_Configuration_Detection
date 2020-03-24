@@ -45,8 +45,8 @@ def generateHistograms(image, filename, objects):
             #plt.plot(histo)
             #histograms.append(histo)
             histograms[str(index+1)+'_'+str(secIndex+1)] = histo
-            #np.savetxt('./'+filename+'/histograms/'+str(index+1)+'_'+str(secIndex+1)+'.csv', histo, delimiter=",")
-            #plt.savefig('./'+filename+'/histograms/'+str(index+1)+'_'+str(secIndex+1)+'.png')
+            #np.savetxt('../'+filename+'/histograms/'+str(index+1)+'_'+str(secIndex+1)+'.csv', histo, delimiter=",")
+            #plt.savefig('../'+filename+'/histograms/'+str(index+1)+'_'+str(secIndex+1)+'.png')
             #plt.clf()
     
     return histograms

@@ -50,7 +50,7 @@ def calculateEuclideanDistance_AllAngles_AllTerms(ob1, ob2, firstAngle, secondAn
     for kform in range(len(Histo_obj1)):
         kform_distances = 0
         for histo in range(len(Histo_obj1[kform])):
-            for histo2 in range(histo+1, len(Histo_obj1[kform])):
+            for histo2 in range(len(Histo_obj1[kform])):
                 kform_distances += euclidean(Histo_obj1[kform][histo], Histo_obj2[kform][histo2])
                 distance += 1
         kform_distances /= distance
@@ -91,7 +91,7 @@ def calculateEuclideanDistance_SameAngles_AllTerms(ob1, ob2, Angle):
     for kform in range(len(Histo_obj1)):
         kform_distances = 0
         for histo in range(len(Histo_obj1[kform])):
-            for histo2 in range(histo+1, len(Histo_obj1[kform])):
+            for histo2 in range(len(Histo_obj1[kform])):
                 kform_distances += euclidean(Histo_obj1[kform][histo], Histo_obj2[kform][histo2])
                 distance += 1
         kform_distances /= distance
@@ -128,25 +128,25 @@ def getEuclideanDistance(degrees, ob1, ob2):
 
     distance = 0
     nbDistances = 0
-    
+     
     #AllAngles
     for firstAngle in range(len(degrees)):
-        for secondAngle in range(firstAngle, len(degrees)) :
-            #distance += calculateEuclideanDistance_AllAngles_AllTerms(ob1, ob2, degrees[firstAngle], degrees[secondAngle]) #3274.232
-            #distance += calculateEuclideanDistance_AllAngles_SameTerms(ob1, ob2, degrees[firstAngle], degrees[secondAngle]) #2986.789
+        for secondAngle in range(len(degrees)) :
+            #distance += calculateEuclideanDistance_AllAngles_AllTerms(ob1, ob2, degrees[firstAngle], degrees[secondAngle]) #3384.813
+            #distance += calculateEuclideanDistance_AllAngles_SameTerms(ob1, ob2, degrees[firstAngle], degrees[secondAngle]) #3295.859
             nbDistances += 1
     '''
     #SameAngles
     for firstAngle in range(len(degrees)):
-        #distance += calculateEuclideanDistance_SameAngles_AllTerms(ob1, ob2, degrees[firstAngle])  #3708.616
+        #distance += calculateEuclideanDistance_SameAngles_AllTerms(ob1, ob2, degrees[firstAngle])  #2787.886
         #distance += calculateEuclideanDistance_SameAngles_SameTerms(ob1, ob2, degrees[firstAngle]) #153.407
         nbDistances += 1
-    '''       
+    '''      
     distance /= nbDistances
     return distance
 
-ob1 = '2'
-ob2 = '3'
+ob1 = '11'
+ob2 = '12'
 degrees = [0, 45, 90, 135, 180, 225, 270, 315, 360]
 
 print("%.3f" % getEuclideanDistance(degrees, ob1, ob2))

@@ -22,7 +22,7 @@ def processFile(filename):
     os.mkdir('../'+filename)
     os.mkdir('../'+filename+'/kformules')
     os.mkdir('../'+filename+'/objects')
-    #os.mkdir('./'+filename+'/histograms')
+    #os.mkdir('../'+filename+'/histograms')
 
     ### Freeing memory
     file.close()
@@ -41,26 +41,24 @@ def processFile(filename):
     #Generating k-formules
     generateKformule(filename, im, objects, histograms)
 
-    dist = getEuclideanDistance(degrees, filename.split('_')[1])
-    distances.append(dist)
-    distancesFile.write(filename+' : {:.2f}'.format(dist)+'\n')
-
 
 degrees = [0, 45, 90, 135, 180, 225, 270, 315, 360]
 distancesFile = open('../EuclideanDistances', 'a+')
-distances = []
+distancesFile.write('Difference: \n')
 
 files = os.listdir('../Ressources/Annotation/')
 
-for file in files:
-    base=os.path.basename(file)
+for fileIndex in range(len(files)):
+    base=os.path.basename(files[fileIndex])
     filename = os.path.splitext(base)[0]
     processFile(filename)
 
-distancesFile.write('************************************** \n')
-distancesFile.write('Difference: \n')
+for fileIndex in range(len(files)):
+    base=os.path.basename(files[fileIndex])
+    filename = os.path.splitext(base)[0]
+    for fileIndex2 in range(fileIndex+1, len(files)):
+        base=os.path.basename(files[fileIndex2])
+        filename2 = os.path.splitext(base)[0]
 
-for index in range(len(distances)-1):
-    for index2 in range(index+1, len(distances)):
-        distancesFile.write('im_'+str(index+1)+' and '+'im_'+str(index2+1)+' : ')
-        distancesFile.write("{:.2f}".format(abs(distances[index]-distances[index2]))+'\n')
+        distancesFile.write(filename+' and '+filename2+' : ')
+        distancesFile.write("{0:.3f}".format(getEuclideanDistance(degrees, filename, filename2))+'\n')

@@ -48,8 +48,8 @@ def calculateEuclideanDistance_AllAngles_AllTerms(ob, firstAngle, secondAngle):
     distances = 0
     for kform in range(len(Histo_obj1)):
         kform_distances = 0
-        for histo in range(len(Histo_obj1[kform])-1):
-            for histo2 in range(histo+1, len(Histo_obj1[kform])):
+        for histo in range(len(Histo_obj1[kform])):
+            for histo2 in range(len(Histo_obj1[kform])):
                 kform_distances += euclidean(Histo_obj1[kform][histo], Histo_obj2[kform][histo2])
                 distances += 1
         kform_distances /= distances
@@ -85,17 +85,17 @@ def getEuclideanDistance(degrees, ob):
     distance = 0
     nbDistances = 0
 
-    for firstAngle in range(len(degrees)-1):
-        for secondAngle in range(firstAngle+1, len(degrees)) :
-            #distance += calculateEuclideanDistance_AllAngles_AllTerms(ob, degrees[firstAngle], degrees[secondAngle]) #0.509
-            #distance += calculateEuclideanDistance_AllAngles_SameTerm(ob, degrees[firstAngle], degrees[secondAngle])  #28.626
+    for firstAngle in range(len(degrees)):
+        for secondAngle in range(len(degrees)) :
+            #distance += calculateEuclideanDistance_AllAngles_AllTerms(ob, degrees[firstAngle], degrees[secondAngle]) #14.659
+            #distance += calculateEuclideanDistance_AllAngles_SameTerm(ob, degrees[firstAngle], degrees[secondAngle])  #25.445
             nbDistances += 1
             
     distance /= nbDistances
     return distance
 
-ob1 = '1'
-ob2 = '6'
+ob1 = '11'
+ob2 = '12'
 degrees = [0, 45, 90, 135, 180, 225, 270, 315, 360]
 
 euc1 = getEuclideanDistance(degrees, ob1)
