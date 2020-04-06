@@ -2,6 +2,7 @@ import numpy as np
 import re
 from shapely.geometry import Point, LineString 
 from shapely import affinity
+from global_var import degrees, outputDir
 
 
 
@@ -18,17 +19,18 @@ def Orthoprojection(point, line):
     return u + n*np.dot(x - u, n)
 
 #rotates a line by an angle, returns lineString object
-def rotateLine(line, angle):
+def rotateLine(line, angle, imageSize):
     coords = []
+    width, height = imageSize
     for coord in affinity.rotate(line, angle).coords[:]:
         x = coord[0]
         y = coord[1]
-        if(x > 2100):
-            x = 2100
+        if(x > width):
+            x = width
         if(x < 0):
             x = 0
-        if(y > 1500):
-            y = 1500
+        if(y > height):
+            y = height
         if(y < 0):
             y = 0
         coords.append(tuple((x,y)))
@@ -36,6 +38,7 @@ def rotateLine(line, angle):
 
 #sorts the list of objects acording to the axis angle
 def sortObjects(objects, angle):
+    angle = angle%360
     if angle <= 45 and angle >= 0:
         #sort by x
         objects.sort(key=lambda obj: obj['x'])
@@ -48,7 +51,7 @@ def sortObjects(objects, angle):
     elif angle > 225 and angle < 315:
         #sort by -y
         objects.sort(key=lambda obj: obj['y'], reverse=True)
-    elif angle >= 315 and angle <= 360:
+    elif angle >= 315 and angle <= 359:
         #sort by -x
         objects.sort(key=lambda obj: obj['x'], reverse=True)
 
@@ -60,7 +63,6 @@ def writeKformules(objects, filename, angle, histograms):
     for index in range(len(objects)-1):
         k_formule = objects[index]['name']+"("
         for index2 in range(index+1, len(objects)):
-            #k_formule+=objects[index2]['name']+","
             if(int(objects[index]['name']) < int(objects[index2]['name'])):
                 k_formule+=re.sub(r'\s+', '',np.array2string(histograms[objects[index]['name']+'_'+objects[index2]['name']], threshold=np.inf, max_line_width=np.inf, separator=',').replace('\n', '')+",")
             else:
@@ -71,7 +73,7 @@ def writeKformules(objects, filename, angle, histograms):
     ###
         
     ### Writing K-formule in a file
-    f= open('../'+filename+'/kformules/'+filename+"_"+str(angle)+".txt","w+")
+    f= open(outputDir+filename+'/kformules/'+filename+"_"+str(angle)+".txt","w+")
     for formule in k_formules:
         f.write(formule+"\n")
     f.close()
@@ -88,12 +90,9 @@ def generateKformule(filename, image, objects, histograms):
     end = (imageSize[0], imageSize[1]/2)
     original_axis = LineString([init, end])
 
-    #Axis Rotation Degrees
-    degrees = [0, 45, 90, 135, 180, 225, 270, 315, 360]
-
     for angle in degrees:
         listOfObjects = []
-        rotatedAxis = rotateLine(original_axis, angle)
+        rotatedAxis = rotateLine(original_axis, angle, imageSize)
 
         #Getting the coordinates
         for obj in objects:
@@ -101,7 +100,7 @@ def generateKformule(filename, image, objects, histograms):
             projection_point = Orthoprojection(point, rotatedAxis)
 
             tmp_object = {}
-            tmp_object['name'] = obj['name']
+            tmp_object['name'] = obj['name'] 
             tmp_object['x'] = projection_point[0]
             tmp_object['y'] = projection_point[1]
             listOfObjects.append(tmp_object)

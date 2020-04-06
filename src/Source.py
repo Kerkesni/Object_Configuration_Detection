@@ -6,23 +6,28 @@ from PIL import Image
 from FilesParser import extract_data, getObjectsFromRaw
 from ForceHistograms import generateHistograms
 from Kformules import generateKformule
-from EuclideanDistance import getEuclideanDistance, getRapportSimilitude
+from Similarity import getEuclideanDistance, getSimilarityRatio
+from global_var import degrees, outputDir, annotationDir, imagesDir
 
-#main function
-def processFile(filename):
+#Fuction That Generate K-formulas for a single image
+#Takes image name as parameter (not the full path)
+#Annotation file and image file have to have the same name
+#Global variables are set in global_var.py, there you can set the input and output directories as well as the angles to consider
+#Annotation file must be a json file (labelme xml -> json)
+#Image should be jpg
+def generate(filename):
     ### Opening and parsing the json file
-    file = open('../Ressources/Annotation/'+filename+'.json')
+    file = open(annotationDir+filename+'.json')
     json_data = json.load(file)
 
     raw_objets = extract_data(json_data)#[{name, pts:[(x, y), ...]}, ...]
     objects = getObjectsFromRaw(raw_objets) #[{name, x, y}, ...]
     ###
 
-    ## Creating k-formules folder
-    os.mkdir('../'+filename)
-    os.mkdir('../'+filename+'/kformules')
-    os.mkdir('../'+filename+'/objects')
-    #os.mkdir('../'+filename+'/histograms')
+    ## Creating data folder
+    os.mkdir(outputDir+filename)
+    os.mkdir(outputDir+filename+'/kformules')
+    os.mkdir(outputDir+filename+'/objects')
 
     ### Freeing memory
     file.close()
@@ -30,7 +35,7 @@ def processFile(filename):
     ###
 
     try:  
-        im = Image.open('../Ressources/Images/'+filename+'.jpg').convert('1')
+        im = Image.open(imagesDir+filename+'.jpg').convert('1')
     except IOError: 
         print("error while opening the image")
         exit
@@ -41,17 +46,22 @@ def processFile(filename):
     #Generating k-formules
     generateKformule(filename, im, objects, histograms)
 
+#Euclidean distance between two file can calculated using the function getEuclideanDistance()
+#Similarity Ratio can be calculated using the methode getSimilarityRatio()
 
-degrees = [0, 45, 90, 135, 180, 225, 270, 315, 360]
-distancesFile = open('../EuclideanDistances', 'a+')
+#-------------------------------------------------------------------
+distancesFile = open(outputDir+'EuclideanDistances', 'a+')
+files = os.listdir(annotationDir)
 
-files = os.listdir('../Ressources/Annotation/')
+distancesFile.write('*****************************\n')
 
+#K-formule Generation of all images in a folder
 for fileIndex in range(len(files)):
     base=os.path.basename(files[fileIndex])
     filename = os.path.splitext(base)[0]
-    processFile(filename)
+    generate(filename)
 
+#Calculating similarity ratios and euclidean distances and storing them in a text file
 for fileIndex in range(len(files)):
     base=os.path.basename(files[fileIndex])
     filename = os.path.splitext(base)[0]
@@ -61,6 +71,8 @@ for fileIndex in range(len(files)):
 
         distancesFile.write(filename+' and '+filename2+' : ')
         distancesFile.write('Euclidean distance: ')
-        distancesFile.write("{0:.3f}".format(getEuclideanDistance(degrees, filename, filename2)))
+        distancesFile.write("{0:.3f}".format(getEuclideanDistance(filename, filename2)))
         distancesFile.write("\t Rapport de Similitude: ")
-        distancesFile.write("{0:.3f}".format(getRapportSimilitude(degrees, filename, filename2))+'\n')
+        distancesFile.write("{0:.3f}".format(getSimilarityRatio(filename, filename2)))
+        distancesFile.write("\t Erreur: ")
+        distancesFile.write("{0:.3f}".format(1-getSimilarityRatio(filename, filename2))+'\n')

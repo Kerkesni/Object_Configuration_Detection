@@ -1,6 +1,7 @@
 from scipy.spatial.distance import euclidean
 import numpy as np
 import re
+import matplotlib.pyplot as plt
 
 #Returns an array of the histograms in the k-formule by original order
 def getHistograms(raw_line):
@@ -38,60 +39,63 @@ def readKforms(path):
         
         return histograms   #np.array
 
-#Function that returns the euclidean distance between two k-formlues files of the same image (between different angles)
-def calculateEuclideanDistanceForAngle(ob1, ob2, angle):
 
+
+def rapportSimilitude2(ob1, ob2, angle, second_angle):
     Histo_obj1 = readKforms('../'+str(ob1)+'/kformules/'+str(ob1)+'_'+str(angle)+'.txt')
-    Histo_obj2 = readKforms('../'+str(ob2)+'/kformules/'+str(ob2)+'_'+str(angle)+'.txt')
-    #euclidean_distances = []
-    euclidean_distances_sum = 0
-    distance = 0
-
-    for kform in range(len(Histo_obj1)):
-        for histo in range(len(Histo_obj1[kform])):
-            #euclidean_distances.append(euclidean(Histo_obj1[kform][histo], Histo_obj2[kform][histo]))
-            euclidean_distances_sum += euclidean(Histo_obj1[kform][histo], Histo_obj2[kform][histo])
-            distance += 1
-
-    return euclidean_distances_sum/distance
-
-#Calculates the average Euclidean distance between all the histograms of an image
-def getEuclideanDistance(degrees, ob1, ob2):
-    distances = []
-    for angle in range(len(degrees)):
-        distances.append(calculateEuclideanDistanceForAngle(ob1, ob2, degrees[angle]))
-    return np.min(distances)
-
-
-def rapportSimilitude(ob1, ob2, fAngle, sAngle):
-    Histo_obj1 = readKforms('../'+str(ob1)+'/kformules/'+str(ob1)+'_'+str(fAngle)+'.txt')
-    Histo_obj2 = readKforms('../'+str(ob2)+'/kformules/'+str(ob2)+'_'+str(sAngle)+'.txt')
-    ratio = 0
-    counter = 0
-    for kform in range(len(Histo_obj1)):
-        for histo in range(len(Histo_obj1[kform])):
+    Histo_obj2 = readKforms('../'+str(ob2)+'/kformules/'+str(ob2)+'_'+str(second_angle)+'.txt')
+    ratios = []
+    for kform in range(len(Histo_obj1)):#4 formulas in total
+        for histo in range(len(Histo_obj1[kform])):#10 comparaisons in total
+            buffer_min = 0
+            buffer_max = 0
             for term in range(len(Histo_obj1[kform][histo])):
+                buffer_min += min(Histo_obj1[kform][histo][term], Histo_obj2[kform][histo][term])
+                buffer_max += max(Histo_obj1[kform][histo][term], Histo_obj2[kform][histo][term])
 
-                if(Histo_obj1[kform][histo][term] < Histo_obj2[kform][histo][term]):
-                    rt = Histo_obj1[kform][histo][term] / Histo_obj2[kform][histo][term]
-                else:
-                    rt = Histo_obj2[kform][histo][term] / Histo_obj1[kform][histo][term]
+            ratios.append(buffer_min / buffer_max)  
+    return sum(ratios) / 10
 
-                if(not np.isnan(rt) and not np.isinf(rt)):
-                    ratio += rt
-                    counter += 1
+def rapportSimilitude(ob1, ob2, angle, second_angle):
+    Histo_obj1 = readKforms('../'+str(ob1)+'/kformules/'+str(ob1)+'_'+str(angle)+'.txt')
+    Histo_obj2 = readKforms('../'+str(ob2)+'/kformules/'+str(ob2)+'_'+str(second_angle)+'.txt')
+    ratios = []
+    for kform in range(len(Histo_obj1)):#4 formulas in total
+        for histo in range(len(Histo_obj1[kform])):#10 comparaisons in total
+            buffer_min = 0
+            cardA = 0
+            cardB = 0
+            for term in range(len(Histo_obj1[kform][histo])):
+                buffer_min += min(Histo_obj1[kform][histo][term], Histo_obj2[kform][histo][term])
+                cardA += Histo_obj1[kform][histo][term]
+                cardB += Histo_obj2[kform][histo][term]
+            ratios.append(buffer_min / max(cardA, cardB))  
+    return sum(ratios) / 10
 
-    return ratio / counter
 
+def getRapportSimilitude(degrees, ob1, ob2):
+    ratios = []
+
+    for angle in range (len(degrees)):
+        ratios.append(rapportSimilitude2(ob1, ob2, degrees[angle], degrees[angle]))
+
+    return ratios#np.max(ratios)
+
+wset = '2'
+wset_lim = 3
 
 degrees = [0, 45, 90, 135, 180, 225, 270, 315, 360]
-ob1 = 'im_11'
-ob2 = 'im_15'
-
-ratios = []
-
-for fAngle in range (len(degrees)):
-    for sAngle in range(len(degrees)):
-        ratios.append(rapportSimilitude(ob1, ob2, degrees[fAngle], degrees[sAngle]))
-
-print(np.max(ratios))
+'''
+legend = []
+for i in range(0, wset_lim+1):
+    for j in range(i+1, wset_lim+1):
+        rt = getRapportSimilitude(degrees, 'im_'+wset+str(i), 'im_'+wset+str(j))
+        plt.plot(degrees, rt)
+        legend.append('im_'+wset+str(i)+' & im_'+wset+str(j))
+    
+plt.legend(legend)
+plt.show()
+'''
+rt = getRapportSimilitude(degrees, 'im_20', 'im_21')
+plt.plot(rt)
+plt.show()
