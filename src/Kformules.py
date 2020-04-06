@@ -57,16 +57,16 @@ def sortObjects(objects, angle):
 
 #writes the kformules in a file
 def writeKformules(objects, filename, angle, histograms):
-
     ### Defining the K-formules
     k_formules = []
     for index in range(len(objects)-1):
         k_formule = objects[index]['name']+"("
         for index2 in range(index+1, len(objects)):
-            if(int(objects[index]['name']) < int(objects[index2]['name'])):
+            if objects[index]['name']+'_'+objects[index2]['name'] in histograms:
                 k_formule+=re.sub(r'\s+', '',np.array2string(histograms[objects[index]['name']+'_'+objects[index2]['name']], threshold=np.inf, max_line_width=np.inf, separator=',').replace('\n', '')+",")
             else:
                 k_formule+=re.sub(r'\s+', '',np.array2string(histograms[objects[index2]['name']+'_'+objects[index]['name']], threshold=np.inf, max_line_width=np.inf, separator=',').replace('\n', '')+",")
+
         k_formule = k_formule[:-1]
         k_formule += ")"
         k_formules.append(k_formule)

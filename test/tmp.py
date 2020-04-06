@@ -40,7 +40,6 @@ def readKforms(path):
         return histograms   #np.array
 
 
-
 def rapportSimilitude2(ob1, ob2, angle, second_angle):
     Histo_obj1 = readKforms('../'+str(ob1)+'/kformules/'+str(ob1)+'_'+str(angle)+'.txt')
     Histo_obj2 = readKforms('../'+str(ob2)+'/kformules/'+str(ob2)+'_'+str(second_angle)+'.txt')
@@ -69,7 +68,10 @@ def rapportSimilitude(ob1, ob2, angle, second_angle):
                 buffer_min += min(Histo_obj1[kform][histo][term], Histo_obj2[kform][histo][term])
                 cardA += Histo_obj1[kform][histo][term]
                 cardB += Histo_obj2[kform][histo][term]
-            ratios.append(buffer_min / max(cardA, cardB))  
+            if(buffer_min == 0 or max(cardA, cardB) == 0):
+                ratios.append(0)
+            else:
+                ratios.append(buffer_min / max(cardA, cardB))  
     return sum(ratios) / 10
 
 
@@ -77,7 +79,7 @@ def getRapportSimilitude(degrees, ob1, ob2):
     ratios = []
 
     for angle in range (len(degrees)):
-        ratios.append(rapportSimilitude2(ob1, ob2, degrees[angle], degrees[angle]))
+        ratios.append(rapportSimilitude(ob1, ob2, degrees[angle], degrees[angle]))
 
     return ratios#np.max(ratios)
 
@@ -96,6 +98,5 @@ for i in range(0, wset_lim+1):
 plt.legend(legend)
 plt.show()
 '''
-rt = getRapportSimilitude(degrees, 'im_20', 'im_21')
-plt.plot(rt)
-plt.show()
+rt = getRapportSimilitude(degrees, 'im_30', 'im_34')
+print(rt)

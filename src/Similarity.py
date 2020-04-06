@@ -75,7 +75,10 @@ def calculateSimilarityRatio(ob1, ob2, angle):
                 buffer_min += min(Histo_obj1[kform][histo][term], Histo_obj2[kform][histo][term])
                 cardA += Histo_obj1[kform][histo][term]
                 cardB += Histo_obj2[kform][histo][term]
-            ratios.append(buffer_min / max(cardA, cardB))  
+            if(buffer_min == 0 or max(cardA, cardB) == 0):
+                ratios.append(0)
+            else:
+                ratios.append(buffer_min / max(cardA, cardB))  
     return sum(ratios) / 10
 
 #Calculates the similarity ratio between two images

@@ -49,17 +49,18 @@ def generate(filename):
 #Euclidean distance between two file can calculated using the function getEuclideanDistance()
 #Similarity Ratio can be calculated using the methode getSimilarityRatio()
 
-#-------------------------------------------------------------------
-distancesFile = open(outputDir+'EuclideanDistances', 'a+')
-files = os.listdir(annotationDir)
 
-distancesFile.write('*****************************\n')
+#-------------------------------------------------------------------
+files = os.listdir(annotationDir)
 
 #K-formule Generation of all images in a folder
 for fileIndex in range(len(files)):
     base=os.path.basename(files[fileIndex])
     filename = os.path.splitext(base)[0]
     generate(filename)
+'''
+distancesFile = open(outputDir+'EuclideanDistances', 'a+')
+distancesFile.write('*****************************\n')
 
 #Calculating similarity ratios and euclidean distances and storing them in a text file
 for fileIndex in range(len(files)):
@@ -76,3 +77,4 @@ for fileIndex in range(len(files)):
         distancesFile.write("{0:.3f}".format(getSimilarityRatio(filename, filename2)))
         distancesFile.write("\t Erreur: ")
         distancesFile.write("{0:.3f}".format(1-getSimilarityRatio(filename, filename2))+'\n')
+'''

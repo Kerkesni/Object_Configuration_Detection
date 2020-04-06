@@ -32,7 +32,7 @@ def generateHistograms(image, filename, objects):
         obj_array = np.asarray(obj)
         tmp = {}
         tmp['array'] = obj_array
-        tmp['name'] = fname[:1]
+        tmp['name'] = fname[:-4]
         objectsArrayRepresentation.append(tmp)
 
     #list of histograms
@@ -42,11 +42,7 @@ def generateHistograms(image, filename, objects):
     for index in range(len(objectsArrayRepresentation)):
         for secIndex in range(index+1, len(objectsArrayRepresentation)):
             histo = fhistogram(objectsArrayRepresentation[index]['array'], objectsArrayRepresentation[secIndex]['array'])
+            histograms[objectsArrayRepresentation[index]['name']+'_'+objectsArrayRepresentation[secIndex]['name']] = histo
 
-            if(objectsArrayRepresentation[index]['name'] < objectsArrayRepresentation[secIndex]['name']):
-                histograms[objectsArrayRepresentation[index]['name']+'_'+objectsArrayRepresentation[secIndex]['name']] = histo
-            else:
-                histograms[objectsArrayRepresentation[secIndex]['name']+'_'+objectsArrayRepresentation[index]['name']] = histo
-    
     return histograms
 
