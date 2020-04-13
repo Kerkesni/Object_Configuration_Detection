@@ -15,6 +15,8 @@ from global_var import degrees, outputDir, annotationDir, imagesDir
 #Global variables are set in global_var.py, there you can set the input and output directories as well as the angles to consider
 #Annotation file must be a json file (labelme xml -> json)
 #Image should be jpg
+generated = False
+histograms = []
 def generate(filename):
     ### Opening and parsing the json file
     file = open(annotationDir+filename+'.json')
@@ -39,9 +41,13 @@ def generate(filename):
     except IOError: 
         print("error while opening the image")
         exit
+    global generated
+    global histograms
 
     #Generating histograms of forces between the objects
-    histograms = generateHistograms(im, filename, raw_objets)
+    if(not generated):
+        histograms = generateHistograms(im, filename, raw_objets)
+        generated = True
 
     #Generating k-formules
     generateKformule(filename, im, objects, histograms)
@@ -51,6 +57,7 @@ def generate(filename):
 
 
 #-------------------------------------------------------------------
+
 files = os.listdir(annotationDir)
 
 #K-formule Generation of all images in a folder
@@ -59,6 +66,8 @@ for fileIndex in range(len(files)):
     filename = os.path.splitext(base)[0]
     generate(filename)
 '''
+
+
 distancesFile = open(outputDir+'EuclideanDistances', 'a+')
 distancesFile.write('*****************************\n')
 

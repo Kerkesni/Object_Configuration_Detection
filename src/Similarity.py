@@ -9,18 +9,17 @@ def getHistograms(raw_line):
     histograms = []
     index = 0
 
-    line = raw_line[2:-2].split(']') #separation of the histograms
+    line = raw_line.split(']')[:-1] #separation of the histograms
 
     for h in line:  #for each histogram in the line
         histo = h
         if(index == 0):
-            histo = histo[1:]   #removing '['
+            histo = histo.split('[')[1]   #removing '['
         if(index != 0):
             histo = histo[2:]   #removing ',['
         index += 1
         histograms.append(np.fromstring(histo, dtype=float, sep=','))
 
-    histograms.pop()    #removing empty item
     return histograms   #np.array of floats
 
 #Reads the kforms in a file
@@ -39,10 +38,10 @@ def readKforms(path):
         return histograms   #np.array
 
 #Function that returns the euclidean distance between two k-formla files
-def calculateEuclideanDistance(ob1, ob2, angle):
+def calculateEuclideanDistance(ob1, ob2, angle, sangle):
 
     Histo_obj1 = readKforms(outputDir+str(ob1)+'/kformules/'+str(ob1)+'_'+str(angle)+'.txt')
-    Histo_obj2 = readKforms(outputDir+str(ob2)+'/kformules/'+str(ob2)+'_'+str(angle)+'.txt')
+    Histo_obj2 = readKforms(outputDir+str(ob2)+'/kformules/'+str(ob2)+'_'+str(sangle)+'.txt')
     #euclidean_distances = []
     euclidean_distances_sum = 0
 
@@ -58,13 +57,13 @@ def calculateEuclideanDistance(ob1, ob2, angle):
 def getEuclideanDistance(filename1, filename2):
     distances = []
     for angle in range(len(degrees)):
-        distances.append(calculateEuclideanDistance(filename1, filename2, degrees[angle]))
+        distances.append(calculateEuclideanDistance(filename1, filename2, degrees[0], degrees[angle]))
     return np.min(distances)
 
 #Function that calculates the similarity ratio between two k-formula files
-def calculateSimilarityRatio(ob1, ob2, angle):
+def calculateSimilarityRatio(ob1, ob2, angle, sangle):
     Histo_obj1 = readKforms(outputDir+str(ob1)+'/kformules/'+str(ob1)+'_'+str(angle)+'.txt')
-    Histo_obj2 = readKforms(outputDir+str(ob2)+'/kformules/'+str(ob2)+'_'+str(angle)+'.txt')
+    Histo_obj2 = readKforms(outputDir+str(ob2)+'/kformules/'+str(ob2)+'_'+str(sangle)+'.txt')
     ratios = []
     for kform in range(len(Histo_obj1)):#For each k-formule
         for histo in range(len(Histo_obj1[kform])):#for each of histograms in a formula
@@ -75,7 +74,9 @@ def calculateSimilarityRatio(ob1, ob2, angle):
                 buffer_min += min(Histo_obj1[kform][histo][term], Histo_obj2[kform][histo][term])
                 cardA += Histo_obj1[kform][histo][term]
                 cardB += Histo_obj2[kform][histo][term]
-            if(buffer_min == 0 or max(cardA, cardB) == 0):
+            if(buffer_min == 0 and max(cardA, cardB) == 0):
+                ratios.append(1)
+            elif (buffer_min == 0 or max(cardA, cardB) == 0):
                 ratios.append(0)
             else:
                 ratios.append(buffer_min / max(cardA, cardB))  
@@ -87,6 +88,6 @@ def getSimilarityRatio(filename1, filename2):
     ratios = []
 
     for angle in range(len(degrees)):
-        ratios.append(calculateSimilarityRatio(filename1, filename2, degrees[angle]))
+        ratios.append(calculateSimilarityRatio(filename1, filename2, degrees[0], degrees[angle]))
 
     return np.max(ratios)

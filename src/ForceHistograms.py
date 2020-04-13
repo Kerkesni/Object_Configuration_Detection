@@ -2,8 +2,7 @@ from PIL import Image, ImageDraw
 import os
 import numpy as np
 from fhistogram import fhistogram
-from global_var import outputDir
-
+from global_var import outputDir, hist_direction
 
 #creates an image for each object in the image
 def seperateObjects(image, filename, objects):
@@ -41,8 +40,8 @@ def generateHistograms(image, filename, objects):
     #Calculating histograms between each two objects
     for index in range(len(objectsArrayRepresentation)):
         for secIndex in range(index+1, len(objectsArrayRepresentation)):
-            histo = fhistogram(objectsArrayRepresentation[index]['array'], objectsArrayRepresentation[secIndex]['array'])
-            histograms[objectsArrayRepresentation[index]['name']+'_'+objectsArrayRepresentation[secIndex]['name']] = histo
+            histo = fhistogram(objectsArrayRepresentation[index]['array'], objectsArrayRepresentation[secIndex]['array'], n_dirs=hist_direction)
+            histograms[objectsArrayRepresentation[index]['name']+'_'+objectsArrayRepresentation[secIndex]['name']] = histo/180
 
     return histograms
 
