@@ -8,21 +8,15 @@ The method uses a certain type of graphs to represent all the different spatial 
 After the graphs are set, the method can detect the configuration of the objects even when a transformation have been made,  like for example a translation or a rotation.
 
 ## Results
-### Rotation
-Input Images:
-![experiment1](results/exp1.jpg)
-Output :
-![experiment1similarity](results/exp1s.jpg)
 - The horizontal axe represents the angle of rotation
 - The vertival axe represents the similarity
+### Rotation
+![experiment1](results/exp1.jpg)
+![experiment1similarity](results/exp1s.jpg)
 
 ### Translation
-Input Images:
 ![experiment2](results/exp2.jpg)
-Output :
 ![experiment2similarity](results/exp2s.jpg)
-- The horizontal axe represents the angle of rotation
-- The vertival axe represents the similarity
 
 
 ## Prerequisites
